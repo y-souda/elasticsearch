@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.3.0
+    image: amazon/opendistro-for-elasticsearch:1.8.0
     restart: always
     environment:
       - cluster.name=odfe-cluster
@@ -11,6 +11,7 @@ services:
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
       - "opendistro_security.ssl.http.enabled=false"
+      - node.ingest=false
     ulimits:
       memlock:
         soft: -1
@@ -20,11 +21,16 @@ services:
     ports:
       - 127.0.0.1:9200:9200
 #      - 9600:9600 # required for Performance Analyzer
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: "tcp://127.0.0.1:2514"
+#        syslog-format: "rfc5424"
     networks:
       - network
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.3.0
+    image: amazon/opendistro-for-elasticsearch:1.8.0
     restart: always
     environment:
       - cluster.name=odfe-cluster
@@ -34,42 +40,50 @@ services:
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
       - "opendistro_security.ssl.http.enabled=false"
+      - node.ingest=false
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
       - odfe-data2:/usr/share/elasticsearch/data
-#    ports:
-#      - 127.0.0.1:9200:9200
-#      - 9600:9600 # required for Performance Analyzer
+    ports:
+      - 127.0.0.1:9201:9200
+      - 9600:9600 # required for Performance Analyzer
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: "tcp://127.0.0.1:2514"
+#        syslog-format: "rfc5424"
     networks:
       - network
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.3.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.8.0
     restart: always
     expose:
       - "5601"
     environment:
-      ELASTICSEARCH_URL: http://127.0.0.1:9200
-      ELASTICSEARCH_HOSTS: http://127.0.1:9200
+      ELASTICSEARCH_URL: http://127.0.0.1:9201
+      ELASTICSEARCH_HOSTS: http://127.0.1:9201
     network_mode: "host"
 
   logstash:
-    image: logstash:7.5.1
+    image: docker.elastic.co/logstash/logstash-oss:7.7.1
     restart: always
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 1
-    environment:
-      - "XPACK_MONITORING_ENABLED=false"
+#    environment:
+#      - "XPACK_MONITORING_ENABLED=false"
     expose:
       - "1514"
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-    depends_on:
-      - odfe-node1
-      - odfe-node2
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: "tcp://127.0.0.1:2514"
+#        syslog-format: "rfc5424"
     network_mode: "host"
 
 volumes:
