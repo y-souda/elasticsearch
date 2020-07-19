@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.8.0
+    image: amazon/opendistro-for-elasticsearch:1.9.0
     restart: always
     environment:
       - cluster.name=odfe-cluster
@@ -20,17 +20,11 @@ services:
       - odfe-data1:/usr/share/elasticsearch/data
     ports:
       - 127.0.0.1:9200:9200
-#      - 9600:9600 # required for Performance Analyzer
-#    logging:
-#      driver: syslog
-#      options:
-#        syslog-address: "tcp://127.0.0.1:2514"
-#        syslog-format: "rfc5424"
     networks:
       - network
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.8.0
+    image: amazon/opendistro-for-elasticsearch:1.9.0
     restart: always
     environment:
       - cluster.name=odfe-cluster
@@ -50,22 +44,17 @@ services:
     ports:
       - 127.0.0.1:9201:9200
       - 9600:9600 # required for Performance Analyzer
-#    logging:
-#      driver: syslog
-#      options:
-#        syslog-address: "tcp://127.0.0.1:2514"
-#        syslog-format: "rfc5424"
     networks:
       - network
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.8.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.9.0
     restart: always
     expose:
       - "5601"
     environment:
       ELASTICSEARCH_URL: http://127.0.0.1:9201
-      ELASTICSEARCH_HOSTS: http://127.0.1:9201
+      ELASTICSEARCH_HOSTS: http://127.0.0.1:9201
     network_mode: "host"
 
   logstash:
@@ -73,17 +62,10 @@ services:
     restart: always
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 1
-#    environment:
-#      - "XPACK_MONITORING_ENABLED=false"
     expose:
       - "1514"
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-#    logging:
-#      driver: syslog
-#      options:
-#        syslog-address: "tcp://127.0.0.1:2514"
-#        syslog-format: "rfc5424"
     network_mode: "host"
 
 volumes:
