@@ -1,7 +1,8 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.9.0
+    image: amazon/opendistro-for-elasticsearch:1.12.0
+    #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
       - cluster.name=odfe-cluster
@@ -9,7 +10,7 @@ services:
       - discovery.seed_hosts=odfe-node1,odfe-node2
       - cluster.initial_master_nodes=odfe-node1,odfe-node2
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
-      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
       - "opendistro_security.ssl.http.enabled=false"
       - node.ingest=false
     ulimits:
@@ -19,20 +20,25 @@ services:
     volumes:
       - odfe-data1:/usr/share/elasticsearch/data
     ports:
-      - 127.0.0.1:9200:9200
-    networks:
-      - network
+      - 127.0.1:9200:9200
+      - 9600:9600 # required for Performance Analyzer
+    logging:
+      driver: "json-file" # defaults if not specified
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.9.0
+    image: amazon/opendistro-for-elasticsearch:1.12.0
+    #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
       - cluster.name=odfe-cluster
       - node.name=odfe-node2
       - discovery.seed_hosts=odfe-node1,odfe-node2
       - cluster.initial_master_nodes=odfe-node1,odfe-node2
-      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
-      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
       - "opendistro_security.ssl.http.enabled=false"
       - node.ingest=false
     ulimits:
@@ -42,13 +48,44 @@ services:
     volumes:
       - odfe-data2:/usr/share/elasticsearch/data
     ports:
-      - 127.0.0.1:9201:9200
-      - 9600:9600 # required for Performance Analyzer
-    networks:
-      - network
+      - 127.0.1:9201:9200
+    logging:
+      driver: "json-file" # defaults if not specified
+      options:
+        max-size: "10m"
+
+ # data node
+  odfe-node3:
+    image: amazon/opendistro-for-elasticsearch:1.12.0
+    #image: odfe-analysis-kuromoji:latest
+    restart: always
+    environment:
+      - cluster.name=odfe-cluster
+      - node.name=odfe-node3
+      - discovery.seed_hosts=odfe-node1,odfe-node2
+      - cluster.initial_master_nodes=odfe-node1,odfe-node2
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - "opendistro_security.ssl.http.enabled=false"
+      - node.data=true
+      - node.master=false
+      - node.ingest=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - odfe-data3:/usr/share/elasticsearch/data
+    ports:
+      - 127.0.0.1:9202:9200
+    logging:
+      driver: "json-file" # defaults if not specified
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.9.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
     restart: always
     expose:
       - "5601"
@@ -58,8 +95,9 @@ services:
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash-oss:7.7.1
+    image: docker.elastic.co/logstash/logstash-oss:7.9.3
     restart: always
+    pid: "host"
     sysctls:
       net.ipv6.conf.all.disable_ipv6: 1
     expose:
@@ -71,6 +109,4 @@ services:
 volumes:
   odfe-data1:
   odfe-data2:
-
-networks:
-  network:
+  odfe-data3:
