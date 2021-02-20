@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: amazon/opendistro-for-elasticsearch:1.13.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -29,7 +29,7 @@ services:
         max-file: "3"
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: amazon/opendistro-for-elasticsearch:1.13.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -56,7 +56,7 @@ services:
 
  # data node
   odfe-node3:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: amazon/opendistro-for-elasticsearch:1.13.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -85,17 +85,17 @@ services:
         max-file: "3"
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
+    image: amazon/opendistro-for-elasticsearch-kibana:1.13.0
     restart: always
     expose:
       - "5601"
     environment:
-      ELASTICSEARCH_URL: http://127.0.0.1:9201
-      ELASTICSEARCH_HOSTS: http://127.0.0.1:9201
+      - ELASTICSEARCH_URL=http://127.0.0.1:9201
+      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9201
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash-oss:7.9.3
+    image: docker.elastic.co/logstash/logstash-oss:7.10.2
     restart: always
     pid: "host"
     sysctls:
