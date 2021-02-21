@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -11,7 +11,6 @@ services:
       - cluster.initial_master_nodes=odfe-node1,odfe-node2
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - "opendistro_security.ssl.http.enabled=false"
       - node.ingest=false
     ulimits:
       memlock:
@@ -29,7 +28,7 @@ services:
         max-file: "3"
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -39,7 +38,6 @@ services:
       - cluster.initial_master_nodes=odfe-node1,odfe-node2
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - "opendistro_security.ssl.http.enabled=false"
       - node.ingest=false
     ulimits:
       memlock:
@@ -56,7 +54,7 @@ services:
 
  # data node
   odfe-node3:
-    image: amazon/opendistro-for-elasticsearch:1.12.0
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -66,7 +64,6 @@ services:
       - cluster.initial_master_nodes=odfe-node1,odfe-node2
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - "opendistro_security.ssl.http.enabled=false"
       - node.data=true
       - node.master=false
       - node.ingest=false
@@ -85,17 +82,17 @@ services:
         max-file: "3"
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.12.0
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
     restart: always
     expose:
       - "5601"
     environment:
-      ELASTICSEARCH_URL: http://127.0.0.1:9201
-      ELASTICSEARCH_HOSTS: http://127.0.0.1:9201
+      - ELASTICSEARCH_URL=http://127.0.0.1:9201
+      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9201
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash-oss:7.9.3
+    image: docker.elastic.co/logstash/logstash-oss:7.10.2
     restart: always
     pid: "host"
     sysctls:
