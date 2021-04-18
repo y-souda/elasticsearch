@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   odfe-node1:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -28,7 +28,7 @@ services:
         max-file: "3"
 
   odfe-node2:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -54,7 +54,7 @@ services:
 
  # data node
   odfe-node3:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2-amd64
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -82,7 +82,7 @@ services:
         max-file: "3"
 
   kibana:
-    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    image: docker.elastic.co/kibana/kibana:7.12.0
     restart: always
     expose:
       - "5601"
@@ -92,7 +92,7 @@ services:
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash-oss:7.10.2
+    image: docker.elastic.co/logstash/logstash:7.12.0
     restart: always
     pid: "host"
     sysctls:
