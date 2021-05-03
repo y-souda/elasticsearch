@@ -1,7 +1,7 @@
-version: '2.4'
+version: '3'
 services:
   odfe-node1:
-    image: amazon/opendistro-for-elasticsearch:1.13.0
+    image: amazon/opendistro-for-elasticsearch:${TAG}
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -17,6 +17,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the Elasticsearch user, set to at least 65536 on modern systems
+        hard: 65536
     volumes:
       - odfe-data1:/usr/share/elasticsearch/data
     ports:
@@ -29,7 +32,7 @@ services:
         max-file: "3"
 
   odfe-node2:
-    image: amazon/opendistro-for-elasticsearch:1.13.0
+    image: amazon/opendistro-for-elasticsearch:${TAG}
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -45,6 +48,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the Elasticsearch user, set to at least 65536 on modern systems
+        hard: 65536
     volumes:
       - odfe-data2:/usr/share/elasticsearch/data
     ports:
@@ -56,7 +62,7 @@ services:
 
  # data node
   odfe-node3:
-    image: amazon/opendistro-for-elasticsearch:1.13.0
+    image: amazon/opendistro-for-elasticsearch:${TAG}
     #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
@@ -74,6 +80,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the Elasticsearch user, set to at least 65536 on modern systems
+        hard: 65536
     volumes:
       - odfe-data3:/usr/share/elasticsearch/data
     ports:
@@ -85,21 +94,19 @@ services:
         max-file: "3"
 
   kibana:
-    image: amazon/opendistro-for-elasticsearch-kibana:1.13.0
+    image: amazon/opendistro-for-elasticsearch-kibana:${TAG}
     restart: always
     expose:
       - "5601"
     environment:
-      - ELASTICSEARCH_URL=http://127.0.0.1:9201
-      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9201
+      - ELASTICSEARCH_URL=http://127.0.0.1:9202
+      - ELASTICSEARCH_HOSTS=["http://127.0.0.1:9202"]
     network_mode: "host"
 
   logstash:
     image: docker.elastic.co/logstash/logstash-oss:7.10.2
     restart: always
     pid: "host"
-    sysctls:
-      net.ipv6.conf.all.disable_ipv6: 1
     expose:
       - "1514"
     volumes:
