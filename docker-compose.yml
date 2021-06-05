@@ -1,14 +1,10 @@
 version: '2.4'
 services:
-  odfe-node1:
+  node:
     image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    #image: odfe-analysis-kuromoji:latest
     restart: always
     environment:
-      - cluster.name=odfe-cluster
-      - node.name=odfe-node1
-      - discovery.seed_hosts=odfe-node1,odfe-node2
-      - cluster.initial_master_nodes=odfe-node1,odfe-node2
+      - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
       - node.ingest=false
@@ -17,64 +13,10 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - odfe-data1:/usr/share/elasticsearch/data
+      - node:/usr/share/elasticsearch/data
     ports:
       - 127.0.1:9200:9200
       - 9600:9600 # required for Performance Analyzer
-    logging:
-      driver: "json-file" # defaults if not specified
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  odfe-node2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    #image: odfe-analysis-kuromoji:latest
-    restart: always
-    environment:
-      - cluster.name=odfe-cluster
-      - node.name=odfe-node2
-      - discovery.seed_hosts=odfe-node1,odfe-node2
-      - cluster.initial_master_nodes=odfe-node1,odfe-node2
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - node.ingest=false
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - odfe-data2:/usr/share/elasticsearch/data
-    ports:
-      - 127.0.1:9201:9200
-    logging:
-      driver: "json-file" # defaults if not specified
-      options:
-        max-size: "10m"
-
- # data node
-  odfe-node3:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    #image: odfe-analysis-kuromoji:latest
-    restart: always
-    environment:
-      - cluster.name=odfe-cluster
-      - node.name=odfe-node3
-      - discovery.seed_hosts=odfe-node1,odfe-node2
-      - cluster.initial_master_nodes=odfe-node1,odfe-node2
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - node.data=true
-      - node.master=false
-      - node.ingest=false
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - odfe-data3:/usr/share/elasticsearch/data
-    ports:
-      - 127.0.0.1:9202:9200
     logging:
       driver: "json-file" # defaults if not specified
       options:
@@ -87,12 +29,12 @@ services:
     expose:
       - "5601"
     environment:
-      - ELASTICSEARCH_URL=http://127.0.0.1:9201
-      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9201
+      - ELASTICSEARCH_URL=http://127.0.0.1:9200
+      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9200
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.12.0
+    image: docker.elastic.co/logstash/logstash:7.13.1
     restart: always
     pid: "host"
     expose:
@@ -102,6 +44,4 @@ services:
     network_mode: "host"
 
 volumes:
-  odfe-data1:
-  odfe-data2:
-  odfe-data3:
+  node:
