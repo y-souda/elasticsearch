@@ -34,7 +34,7 @@ services:
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.13.1
+    image: docker.elastic.co/logstash/logstash:${TAG}
     restart: always
     pid: "host"
     expose:
