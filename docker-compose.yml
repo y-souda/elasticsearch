@@ -92,11 +92,14 @@ services:
     network_mode: "host"
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.12.0
+    image: docker.elastic.co/logstash/logstash:${TAG}
     restart: always
     pid: "host"
     expose:
       - "1514"
+    environment:
+      - xpack.monitoring.enabled=true
+      - xpack.monitoring.elasticsearch.hosts=http://127.0.0.1:9200
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     network_mode: "host"
