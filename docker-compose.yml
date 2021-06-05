@@ -1,4 +1,4 @@
-version: '2.4'
+version: '3'
 services:
   node:
     image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
@@ -7,7 +7,6 @@ services:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-      - node.ingest=false
     ulimits:
       memlock:
         soft: -1
