@@ -1,86 +1,90 @@
-version: '2.4'
+version: "2.4"
 services:
-  elastic-node1:
+  es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    restart: always
-    environment:
-      - cluster.name=elastic-cluster
-      - node.name=elastic-node1
-      - discovery.seed_hosts=elastic-node1,elastic-node2
-      - cluster.initial_master_nodes=elastic-node1,elastic-node2
-      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     volumes:
-      - elastic-data1:/usr/share/elasticsearch/data
+      - esdata01:/usr/share/elasticsearch/data
     ports:
-      - 127.0.0.1:9200:9200
-#      - 9600:9600 # required for Performance Analyzer
-    logging:
-      driver: "json-file" # defaults if not specified
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  elastic-node2:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    restart: always
+      - 127.0.0.1:${ES_PORT}:9200
     environment:
-      - cluster.name=elastic-cluster
-      - node.name=elastic-node2
-      - discovery.seed_hosts=elastic-node1,elastic-node2
-      - cluster.initial_master_nodes=elastic-node1,elastic-node2
+      - node.name=es01
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=es02,es03
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - xpack.security.enabled=false
+      - ingest.geoip.downloader.enabled=false
+    mem_limit: ${MEM_LIMIT}
     ulimits:
       memlock:
         soft: -1
         hard: -1
+
+  es02:
+    depends_on:
+      - es01
+    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
     volumes:
-      - elastic-data2:/usr/share/elasticsearch/data
+      - esdata02:/usr/share/elasticsearch/data
     ports:
       - 127.0.0.1:9201:9200
-    logging:
-      driver: "json-file" # defaults if not specified
-      options:
-        max-size: "10m"
-
-  elastic-node3:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
-    restart: always
     environment:
-      - cluster.name=elastic-cluster
-      - node.name=elastic-node3
-      - discovery.seed_hosts=elastic-node1,elastic-node2
-      - cluster.initial_master_nodes=elastic-node1,elastic-node2
+      - node.name=es02
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=es01,es03
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - xpack.security.enabled=false
+      - ingest.geoip.downloader.enabled=false
+    mem_limit: ${MEM_LIMIT}
     ulimits:
       memlock:
         soft: -1
         hard: -1
+
+  es03:
+    depends_on:
+      - es02
+    image: docker.elastic.co/elasticsearch/elasticsearch:${TAG}
     volumes:
-      - elastic-data3:/usr/share/elasticsearch/data
+      - esdata03:/usr/share/elasticsearch/data
     ports:
       - 127.0.0.1:9202:9200
-    logging:
-      driver: "json-file" # defaults if not specified
-      options:
-        max-size: "10m"
-        max-file: "3"
+    environment:
+      - node.name=es03
+      - cluster.name=${CLUSTER_NAME}
+      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.seed_hosts=es01,es02
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - ingest.geoip.downloader.enabled=false
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
   kibana:
     image: docker.elastic.co/kibana/kibana:${TAG}
-    restart: always
-    expose:
-      - "5601"
-    environment:
-      - ELASTICSEARCH_URL=http://127.0.0.1:9202
-      - ELASTICSEARCH_HOSTS=http://127.0.0.1:9202
+    volumes:
+      - kibanadata:/usr/share/kibana/data
     network_mode: "host"
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://127.0.0.1:${ES_PORT}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+    mem_limit: ${MEM_LIMIT}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
 
   logstash:
     image: docker.elastic.co/logstash/logstash:${TAG}
@@ -88,12 +92,17 @@ services:
     pid: "host"
     environment:
       - xpack.monitoring.enabled=true
-      - xpack.monitoring.elasticsearch.hosts=http://127.0.0.1:9202
+      - xpack.monitoring.elasticsearch.hosts=http://127.0.0.1:${ES_PORT}
     volumes:
       - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     network_mode: "host"
 
 volumes:
-  elastic-data1:
-  elastic-data2:
-  elastic-data3:
+  esdata01:
+    driver: local
+  esdata02:
+    driver: local
+  esdata03:
+    driver: local
+  kibanadata:
+    driver: local
