@@ -1,2 +1,2 @@
-FROM amazon/opendistro-for-elasticsearch:1.11.0
-RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-kuromoji
+FROM docker.elastic.co/logstash/logstash:8.1.2
+RUN bin/logstash-plugin install logstash-input-websocket
