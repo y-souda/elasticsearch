@@ -23,7 +23,7 @@ services:
     volumes:
       - odfe-data1:/usr/share/elasticsearch/data
     ports:
-      - 127.0.1:9200:9200
+      - 127.0.0.1:9200:9200
       - 9600:9600 # required for Performance Analyzer
     logging:
       driver: "json-file" # defaults if not specified
@@ -54,7 +54,7 @@ services:
     volumes:
       - odfe-data2:/usr/share/elasticsearch/data
     ports:
-      - 127.0.1:9201:9200
+      - 127.0.0.1:9201:9200
     logging:
       driver: "json-file" # defaults if not specified
       options:
