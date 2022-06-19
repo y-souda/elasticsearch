@@ -15,7 +15,7 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - ingest.geoip.downloader.enabled=false
-    mem_limit: ${MEM_LIMIT}
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     ulimits:
       memlock:
         soft: -1
@@ -37,7 +37,7 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - ingest.geoip.downloader.enabled=false
-    mem_limit: ${MEM_LIMIT}
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     ulimits:
       memlock:
         soft: -1
@@ -59,7 +59,7 @@ services:
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - ingest.geoip.downloader.enabled=false
-    mem_limit: ${MEM_LIMIT}
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     ulimits:
       memlock:
         soft: -1
@@ -69,13 +69,13 @@ services:
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
     volumes:
       - kibanadata:/usr/share/kibana/data
+      - ./kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     network_mode: "host"
     environment:
       - SERVERNAME=kibana
       - ELASTICSEARCH_HOSTS=http://127.0.0.1:${ES_PORT}
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-    mem_limit: ${MEM_LIMIT}
     healthcheck:
       test:
         [
@@ -88,7 +88,6 @@ services:
 
   logstash:
     image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
-    restart: always
     pid: "host"
     environment:
       - xpack.monitoring.enabled=true
